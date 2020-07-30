@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30320.27
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "RaceTrackerAI", "RaceTrackerAI\RaceTrackerAI.pyproj", "{71D54BF5-670D-41E5-BFB8-68AD29BA7D42}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{71D54BF5-670D-41E5-BFB8-68AD29BA7D42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71D54BF5-670D-41E5-BFB8-68AD29BA7D42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2FED5039-5145-4C91-9095-73828A9656BB}
+	EndGlobalSection
+EndGlobal
