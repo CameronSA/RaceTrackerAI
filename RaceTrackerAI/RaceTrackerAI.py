@@ -12,7 +12,7 @@ def AddToDict(dict,key,value):
     else:
         dict[key] = [value]
 
-df = pd.read_csv("C:\\Users\\camme\\Desktop\\RaceData\\OutputProcessedRaceData.csv")
+df = pd.read_csv("C:\\Users\\camme\\Desktop\\RaceData\\OutputProcessedRaceDataExtraCols.csv")
 df['Position'] = df['Position'].str.strip() == '1'
 
 raceDict={}
@@ -20,7 +20,7 @@ print("Getting dictionary of races. . .")
 for index, row in df.iterrows(): 
     dateStr = str(row['Date']) + ' ' + str(row['Time'])
     raceDate = datetime.strptime(dateStr,'%Y-%m-%d %H%M')
-    rowList = [row['Going'],row['Surface'],row['Race Type'],row['Age'],row['Prize'],row['Distance'],row['Racetrack'],row['Position'],row['Horse Name'],row['Horse Age'],row['Horse Weight'],row['ISP']]
+    rowList = [row['Going'],row['Surface'],row['Race Type'],row['Age'],row['Prize'],row['Distance'],row['Racetrack'],row['Position'],row['Horse Name'],row['Horse Age'],row['Horse Weight'],row['ISP'],row['Class'],row['NH'],row['Handicap'],row['Novice']]
 
     AddToDict(raceDict,raceDate,rowList)
 
@@ -60,6 +60,11 @@ for race in raceDict:
             avOddsOfOthers=-1.0
             oddsSpreadOfOthers=0.0
 
+        raceClass = raceDict[race][0][12]
+        nationalHunt = raceDict[race][0][13] == 1
+        handicap = raceDict[race][0][14] == 1
+        novice = raceDict[race][0][15] == 1
+
         AddToDict(raceDataDict,'Going',going)
         AddToDict(raceDataDict,'Surface',surface)
         AddToDict(raceDataDict,'Race Type',raceType)
@@ -74,9 +79,15 @@ for race in raceDict:
         AddToDict(raceDataDict,'Average Odds Of Others',avOddsOfOthers)
         AddToDict(raceDataDict,'StdDev Odds Of Others',oddsSpreadOfOthers)
         AddToDict(raceDataDict,'Number Of Horses',numberHorses)
+        AddToDict(raceDataDict,'Class',raceClass)
+        AddToDict(raceDataDict,'NH',nationalHunt)
+        AddToDict(raceDataDict,'Handicap',handicap)
+        AddToDict(raceDataDict,'Novice',novice)
     except Exception as err:
         print('Parsing error. Race: '+str(race)+' skipped', err);
 
-print(pd.DataFrame.from_dict(raceDataDict))
+raceSummaryData = pd.DataFrame.from_dict(raceDataDict)
+print(raceSummaryData)
+raceSummaryData.to_csv("C:\\Users\\camme\\Desktop\\RaceData\\RaceSummaryData.csv");
 
     
