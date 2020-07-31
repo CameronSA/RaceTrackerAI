@@ -65,6 +65,7 @@ for race in raceDict:
         handicap = raceDict[race][0][14] == 1
         novice = raceDict[race][0][15] == 1
 
+        AddToDict(raceDataDict,'Date',race)
         AddToDict(raceDataDict,'Going',going)
         AddToDict(raceDataDict,'Surface',surface)
         AddToDict(raceDataDict,'Race Type',raceType)
@@ -73,6 +74,7 @@ for race in raceDict:
         AddToDict(raceDataDict,'Distance',distance)
         AddToDict(raceDataDict,'Race Track',raceTrack)
         AddToDict(raceDataDict,'Favourite Won',favWon)
+        AddToDict(raceDataDict,'Favourite Age',favAge)
         AddToDict(raceDataDict,'Favourite Name',favName)
         AddToDict(raceDataDict,'Favourite Odds',favOdds)
         AddToDict(raceDataDict,'Second Favourite Odds',secondFavOdds)
