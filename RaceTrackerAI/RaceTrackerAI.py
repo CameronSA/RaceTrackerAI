@@ -90,6 +90,6 @@ for race in raceDict:
 
 raceSummaryData = pd.DataFrame.from_dict(raceDataDict)
 print(raceSummaryData)
-raceSummaryData.to_csv("C:\\Users\\camme\\Desktop\\RaceData\\RaceSummaryData.csv");
+raceSummaryData.to_csv("C:\\Users\\camme\\Desktop\\RaceData\\RaceSummaryData.csv",index=False);
 
     
