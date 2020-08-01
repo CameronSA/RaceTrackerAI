@@ -21,6 +21,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CommonFunctions.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Constants.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DecisionTreeModel.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RaceTrackerAI.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
