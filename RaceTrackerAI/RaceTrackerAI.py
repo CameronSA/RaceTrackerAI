@@ -1,3 +1,5 @@
+import os
+os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 import pandas as pd
 from datetime import datetime
 from decimal import Decimal
