@@ -27,7 +27,7 @@
     <Compile Include="Constants.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DecisionTreeModel.py">
+    <Compile Include="RandomForestModel.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RaceTrackerAI.py" />

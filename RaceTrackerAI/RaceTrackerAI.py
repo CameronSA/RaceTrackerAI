@@ -8,7 +8,7 @@ import sys
 import statistics as stats
 import Constants
 import CommonFunctions as cf
-import DecisionTreeModel as dtm
+import RandomForestModel as rfm
 import os.path 
 
 def CreateRaceSummaryDataset():
@@ -48,7 +48,7 @@ def CreateRaceSummaryDataset():
             oddsList = list(map(float, oddsList))
             favOdds = min(oddsList)
             favIndex = oddsList.index(favOdds)
-            favWon = raceDict[race][favIndex][7] == 1
+            favWon = raceDict[race][favIndex][7] == 1 #Toggle to search for winners/losers
             favName = raceDict[race][favIndex][8]
             favAge = raceDict[race][favIndex][9]
             favWeight = raceDict[race][favIndex][10]
@@ -100,16 +100,17 @@ def CheckRaceSummaryDatasetExists():
     if os.path.isfile(Constants.RACE_SUMMARY_DATA_FILEPATH): return True
     else: return False
 
-def StartDecisionTreeModel():
-    descisionTree = dtm.DecisionTree()
+def StartRandomForestModel():
+    model = rfm.RandomForestModel()
+    model.Run(includeGoing = False, loopOverMaxDepth = False)
 
 if len(sys.argv) > 1:
-    if sys.argv[1].lower() == '-decisiontree': 
+    if sys.argv[1].lower() == '-randomforest': 
         if CheckRaceSummaryDatasetExists(): 
             print('\nDataset found at path: ' + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + '. Starting decision tree model. . .')
-            StartDecisionTreeModel()
+            StartRandomForestModel()
         else: 
             print('\nDataset not found at path: ' + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + '. Creating. . .') 
             CreateRaceSummaryDataset()
-            StartDecisionTreeModel()
+            StartRandomForestModel()
     elif sys.argv[1].lower() == "-getdataset": CreateRaceSummaryDataset()
