@@ -9,51 +9,44 @@ from sklearn.tree import export_graphviz
 from sklearn.ensemble import RandomForestClassifier
 import statistics as st
 import graphviz
-import matplotlib as plt
+from datetime import datetime
+import PreProcessData as ppd
 
 class RandomForestModel:
     def __init__(self):
-        print("Fetching dataset from path '" + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + "'")
-        self.data = pd.read_csv(Constants.RACE_SUMMARY_DATA_FILEPATH)
         #self.data['Prize'] = self.data['Prize'].map(lambda x: x.lstrip('£').lstrip('€'))
-        self.columns = ['Going','Favourite Won','Favourite Odds','Second Favourite Odds','Average Odds Of Others','StdDev Odds Of Others','Number Of Horses','Class','NH','Handicap','Novice']
-        self.features = ['Going','Favourite Odds','Second Favourite Odds','Average Odds Of Others','StdDev Odds Of Others','Number Of Horses','Class','NH','Handicap','Novice']
-        self.maxDepth = []
-        self.maxDepthPositivePredictionRate = []
-        self.maxDepthPercentagePositivePredictionRate = []
+        ppd.PreProcessData()        
+        #self.columns = ['Going','Favourite Won','Favourite Odds','Second Favourite Odds','Average Odds Of Others','StdDev Odds Of Others','Number Of Horses','Class','NH','Handicap','Novice','Race Index']
+        #self.features = ['Going','Favourite Odds','Second Favourite Odds','Average Odds Of Others','StdDev Odds Of Others','Number Of Horses','Class','NH','Handicap','Novice','Race Index']
+        print("Fetching preprocessed dataset from path '" + str(Constants.PREPROCESSED_DATA_FILEPATH) + "'")
+        self.data = pd.read_csv(Constants.PREPROCESSED_DATA_FILEPATH)
+        columns = [x for x in self.data.columns.tolist() if x != 'Date']
+        self.columns = columns
+        self.features = [x for x in columns if x != 'Favourite Won']
 
-    def Run(self, includeGoing, loopOverMaxDepth):        
-        if includeGoing:
-            uniqueGoings = set(self.data['Going'])        
-            for going in uniqueGoings:     
-                with warnings.catch_warnings():                
-                    warnings.simplefilter(action='ignore', category=FutureWarning)
-                    dataSet = self.data
-                    dataSet['Going'] = dataSet['Going'] == str(going)
-                    dataSet = dataSet[self.columns].dropna()
-                    print('Building random forest model for '+going+' going. . .')
-                    self.X = dataSet[self.features].values
-                    self.Y = dataSet['Favourite Won'].values     
-                    if loopOverMaxDepth:
-                        for i in range(2,11):
-                            self.__BuildModel(going,i)
-                    else:
-                        self.__BuildModel(going,5)
-        else:
-            self.columns.remove('Going')
-            self.features.remove('Going')
-            dataSet = self.data
-            dataSet = dataSet[self.columns].dropna()
-            self.X = dataSet[self.features].values
-            self.Y = dataSet['Favourite Won'].values             
-            if loopOverMaxDepth:
-                for i in range(2,11):
-                    self.__BuildModel('n/a',i)
-                else:
-                    self.__BuildModel('n/a',5)
+        self.MaxDepths=[]
 
+        self.Accuracies=[]
+        self.Precisions=[]
+        self.Recalls=[]
+        self.AveragePositivePredictionRates=[]
+        self.AveragePositivePredictionRatesTimesPrecision=[]
 
-    def __BuildModel(self, going, maxDepth):
+        self.AccuraciesErrors=[]
+        self.PrecisionsErrors=[]
+        self.RecallsErrors=[]
+        self.AveragePositivePredictionRatesErrors=[]
+        self.AveragePositivePredictionRatesTimesPrecisionErrors=[]
+
+    def Run(self):     
+        print('Starting decision tree model. . .')
+        dataSet = self.data
+        dataSet = dataSet[self.columns].dropna()
+        self.X = dataSet[self.features].values
+        self.Y = dataSet['Favourite Won'].values        
+        self.__BuildModel(5)
+
+    def __BuildModel(self, maxDepth):
         accuracy = []
         precision = []
         recall = []
@@ -79,7 +72,6 @@ class RandomForestModel:
         percentageTotalPredictionsErrorSquared = (precisionMean*avPositivePredictionRateError)**2 + (avPositivePredictionRate*precisionMeanError)**2
         percentageTotalPredictionsError = round(percentageTotalPredictionsErrorSquared**0.5,2)
 
-        print("\nGoing: "+going)
         print("Max Depth: "+str(maxDepth))
         print("\n\tAccuracy:", np.mean(accuracy), "+/-", np.std(accuracy))
         print("\tPrecision:", precisionMean, "+/-", precisionMeanError)

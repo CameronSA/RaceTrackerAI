@@ -27,10 +27,16 @@
     <Compile Include="Constants.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="PreProcessData.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RandomForestModel.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="RaceTrackerAI.py" />
+    <Compile Include="TuneRandomForestParameters.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

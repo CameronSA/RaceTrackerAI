@@ -102,12 +102,12 @@ def CheckRaceSummaryDatasetExists():
 
 def StartRandomForestModel():
     model = rfm.RandomForestModel()
-    model.Run(includeGoing = False, loopOverMaxDepth = False)
+    model.Run()
 
 if len(sys.argv) > 1:
     if sys.argv[1].lower() == '-randomforest': 
         if CheckRaceSummaryDatasetExists(): 
-            print('\nDataset found at path: ' + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + '. Starting decision tree model. . .')
+            print('\nDataset found at path: ' + str(Constants.RACE_SUMMARY_DATA_FILEPATH))
             StartRandomForestModel()
         else: 
             print('\nDataset not found at path: ' + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + '. Creating. . .') 
