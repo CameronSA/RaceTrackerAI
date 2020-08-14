@@ -8,7 +8,7 @@ class PreProcessData:
     def __init__(self):   
         print('Started data preprocessing. . .')
         if(self.__CheckDatasetExists()):
-            print("Dataset found at '"+Constants.PREPROCESSED_DATA_FILEPATH+"'. Overwrite? (y/n)")
+            print("Preprocessed dataset found at '"+Constants.PREPROCESSED_DATA_FILEPATH+"'. Overwrite? (y/n): ",end='')
             if input().lower() == 'y':
                 self.__PreProcessData()
         else :
@@ -18,10 +18,12 @@ class PreProcessData:
     
     def __PreProcessData(self):        
         print("Fetching dataset from path '" + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + "'")
-        self.data = pd.read_csv(Constants.RACE_SUMMARY_DATA_FILEPATH)        
-        self.__DropUnwantedColumns()
+        self.data = pd.read_csv(Constants.RACE_SUMMARY_DATA_FILEPATH)    
         self.__IndexRaces()
-        self.__SplitOnGoing()    
+        self.__SplitOnGoing()       
+        self.__SplitOnRaceType()
+        self.__FormatDistance()
+        self.__DropUnwantedColumns()
         print("Writing preprocessed data to '"+str(Constants.PREPROCESSED_DATA_FILEPATH)+"'")
         self.data.to_csv(Constants.PREPROCESSED_DATA_FILEPATH, index=None, sep=',', mode='w')
 
@@ -56,12 +58,20 @@ class PreProcessData:
         self.data = self.data.drop(['Going'], axis=1)
 
     def __SplitOnRaceType(self):
-        print('Splitting on race type (incomplete). . .')
+        print('Creating going columns. . .')
+        uniqueRaceTypes = sorted(set(self.data['Race Type']))
+        for raceType in uniqueRaceTypes:
+            self.data[raceType] = False
+        for raceType in uniqueRaceTypes:
+            for ind, row in self.data.iterrows():
+                if raceType == row['Race Type']:
+                    self.data.loc[ind,raceType] = True
+        self.data = self.data.drop(['Race Type'], axis=1)
 
     def __FormatDistance(self):
         print('Formatting distance column (incomplete). . .')
 
-    def __DropUnwantedColumns():
+    def __DropUnwantedColumns(self):
         print('Dropping unwanted columns. . .')
         self.data = self.data.drop(['Date','Surface','Prize','Age'],axis=1)
 
