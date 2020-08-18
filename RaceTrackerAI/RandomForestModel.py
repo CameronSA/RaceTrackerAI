@@ -15,10 +15,7 @@ from tqdm import tqdm
 
 class RandomForestModel:
     def __init__(self):
-        #self.data['Prize'] = self.data['Prize'].map(lambda x: x.lstrip('£').lstrip('€'))
         ppd.PreProcessData()        
-        #self.columns = ['Going','Favourite Won','Favourite Odds','Second Favourite Odds','Average Odds Of Others','StdDev Odds Of Others','Number Of Horses','Class','NH','Handicap','Novice','Race Index']
-        #self.features = ['Going','Favourite Odds','Second Favourite Odds','Average Odds Of Others','StdDev Odds Of Others','Number Of Horses','Class','NH','Handicap','Novice','Race Index']
         print("Fetching preprocessed dataset from path '" + str(Constants.PREPROCESSED_DATA_FILEPATH) + "'")
         self.data = pd.read_csv(Constants.PREPROCESSED_DATA_FILEPATH)
         columns = [x for x in self.data.columns.tolist() if x != 'Date']
@@ -41,7 +38,7 @@ class RandomForestModel:
         self.betAmount = 10.0
 
     def Run(self):     
-        print('Starting decision tree model. . .')
+        print('Starting random forest model. . .')
         dataSet = self.data
         dataSet = dataSet[self.columns].dropna()
         self.X = dataSet[self.features].values
@@ -86,7 +83,7 @@ class RandomForestModel:
             for ind in range(len(y_pred)):
                 if y_pred[ind]:
                     if y_test[ind]:
-                        totalWinningsPlusStake += (self.betAmount*odds[ind] + self.betAmount)
+                        totalWinningsPlusStake += ((self.betAmount*odds[ind]) + self.betAmount)
                         numberWins+=1
                     else:
                         numberLosses+=1
