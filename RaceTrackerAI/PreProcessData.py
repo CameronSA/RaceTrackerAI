@@ -25,7 +25,7 @@ class PreProcessData:
         self.__FormatDistance()
         self.__SplitOnGoing()       
         self.__SplitOnRaceType()
-        self.__SplitOnRaceTrack()
+        #self.__SplitOnRaceTrack()
         self.__DropUnwantedColumns()
         print("\nWriting preprocessed data to '"+str(Constants.PREPROCESSED_DATA_FILEPATH)+"'")
         self.data.to_csv(Constants.PREPROCESSED_DATA_FILEPATH, index=None, sep=',', mode='w')

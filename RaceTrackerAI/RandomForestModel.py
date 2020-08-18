@@ -82,18 +82,7 @@ class RandomForestModel:
             totalBets.append(self.betAmount*sum(y_pred))
             totalWinningsPlusStake = 0.0
             numberWins = 0
-            numberLosses = 0
-            #for ind in range(len(y_pred)): # Betting on everything, not just wins!
-            #    if y_pred[ind]:
-            #        totalWinningsPlusStake += (self.betAmount*odds[ind] + self.betAmount)
-            #        numberWins+=1
-            #    else:
-            #        numberLosses+=1
-            #        totalWinningsPlusStake -= self.betAmount
-            #totalWinningsPlusStakes.append(totalWinningsPlusStake)
-            #totalNumberWins.append(numberWins)                        
-            #totalNumberLosses.append(numberLosses)    
-            
+            numberLosses = 0           
             for ind in range(len(y_pred)):
                 if y_pred[ind]:
                     if y_test[ind]:
