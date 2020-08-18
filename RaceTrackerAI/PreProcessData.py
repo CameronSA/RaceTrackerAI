@@ -25,8 +25,7 @@ class PreProcessData:
         self.__FormatDistance()
         self.__SplitOnGoing()       
         self.__SplitOnRaceType()
-        #self.__SplitOnRaceTrack()
-        self.data = self.data.drop(['Race Track'], axis=1)
+        self.__SplitOnRaceTrack()
         self.__DropUnwantedColumns()
         print("\nWriting preprocessed data to '"+str(Constants.PREPROCESSED_DATA_FILEPATH)+"'")
         self.data.to_csv(Constants.PREPROCESSED_DATA_FILEPATH, index=None, sep=',', mode='w')
@@ -61,7 +60,6 @@ class PreProcessData:
             for ind, row in self.data.iterrows():
                 if going == row['Going']:
                     self.data.loc[ind,going] = True
-        self.data = self.data.drop(['Going'], axis=1)
 
     def __SplitOnRaceType(self):
         print('\nCreating race type columns. . .')
@@ -74,7 +72,6 @@ class PreProcessData:
             for ind, row in self.data.iterrows():
                 if raceType == row['Race Type']:
                     self.data.loc[ind,raceType] = True
-        self.data = self.data.drop(['Race Type'], axis=1)
 
     def __FormatDistance(self):
         print('\nFormatting distance column. . .')
@@ -104,11 +101,10 @@ class PreProcessData:
             for ind, row in self.data.iterrows():
                 if raceTrack == row['Race Track']:
                     self.data.loc[ind,raceTrack] = True
-        self.data = self.data.drop(['Race Track'], axis=1)
 
     def __DropUnwantedColumns(self):
         print('\nDropping unwanted columns. . .')
-        self.data = self.data.drop(['Date','Surface','Prize','Age','Favourite Name'],axis=1)
+        self.data = self.data.drop(['Date','Surface','Prize','Age','Favourite Name','Going','Race Type','Race Track'],axis=1)
 
     def __CheckDatasetExists(self):
         if os.path.isfile(Constants.PREPROCESSED_DATA_FILEPATH): return True

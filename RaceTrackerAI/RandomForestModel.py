@@ -38,6 +38,7 @@ class RandomForestModel:
         self.RecallsErrors=[]
         self.AveragePositivePredictionRatesErrors=[]
         self.AveragePositivePredictionRatesTimesPrecisionErrors=[]
+        self.betAmount = 10.0
 
     def Run(self):     
         print('Starting decision tree model. . .')
@@ -61,6 +62,12 @@ class RandomForestModel:
         positivePredictionStdDevProbabilitiesDifference =[]
         negativePredictionAverageProbabilitiesDifference =[]
         negativePredictionStdDevProbabilitiesDifference =[]
+
+        totalBets=[]
+        totalWinningsPlusStakes=[]
+        totalNumberWins = []
+        totalNumberLosses = []
+
         kf = KFold(n_splits = 20, shuffle = True)
         for train_index, test_index in tqdm(kf.split(self.X)):
             X_train, X_test = self.X[train_index], self.X[test_index]
@@ -68,8 +75,37 @@ class RandomForestModel:
             #dt = DecisionTreeClassifier(max_depth=5, min_samples_leaf=100, criterion='gini')
             dt = RandomForestClassifier(max_depth = maxDepth)
             dt.fit(X_train, y_train)
+
+            odds = pd.DataFrame(X_test, columns=self.features)['Favourite Odds'].values
             y_pred = dt.predict(X_test)
             y_pred_proba = dt.predict_proba(X_test)
+            totalBets.append(self.betAmount*sum(y_pred))
+            totalWinningsPlusStake = 0.0
+            numberWins = 0
+            numberLosses = 0
+            #for ind in range(len(y_pred)): # Betting on everything, not just wins!
+            #    if y_pred[ind]:
+            #        totalWinningsPlusStake += (self.betAmount*odds[ind] + self.betAmount)
+            #        numberWins+=1
+            #    else:
+            #        numberLosses+=1
+            #        totalWinningsPlusStake -= self.betAmount
+            #totalWinningsPlusStakes.append(totalWinningsPlusStake)
+            #totalNumberWins.append(numberWins)                        
+            #totalNumberLosses.append(numberLosses)    
+            
+            for ind in range(len(y_pred)):
+                if y_pred[ind]:
+                    if y_test[ind]:
+                        totalWinningsPlusStake += (self.betAmount*odds[ind] + self.betAmount)
+                        numberWins+=1
+                    else:
+                        numberLosses+=1
+                        totalWinningsPlusStake -= self.betAmount
+            totalWinningsPlusStakes.append(totalWinningsPlusStake)
+            totalNumberWins.append(numberWins)                        
+            totalNumberLosses.append(numberLosses)    
+            
             positivePredictionRates.append(sum(y_pred)/(len(y_pred)-sum(y_pred)))
             y_pred_proba_positive = []
             y_pred_proba_negative = []
@@ -82,6 +118,7 @@ class RandomForestModel:
                 elif item[0] > item[1]:
                     y_pred_proba_negative.append(item[0])
                     y_pred_proba_negative_difference.append(item[0]-item[1])
+
             positivePredictionAverageProbabilities.append(np.mean(y_pred_proba_positive))
             positivePredictionStdDevProbabilities.append(np.std(y_pred_proba_positive))
             negativePredictionAverageProbabilities.append(np.mean(y_pred_proba_negative))
@@ -116,6 +153,13 @@ class RandomForestModel:
         negativePredictionProbabilityMeanDifference= round(100*np.mean(negativePredictionAverageProbabilitiesDifference),2)
         negativePredictionProbabilityErrorDifference = round(100*AddInQuadrature(negativePredictionStdDevProbabilitiesDifference)/float(len(negativePredictionAverageProbabilitiesDifference))**0.5,2)
 
+        avTotalBet = round(np.mean(totalBets),2)
+        avTotalWinnings = round(np.mean(totalWinningsPlusStakes),2)
+        avTotalBetError = round(np.std(totalBets),2)
+        avTotalWinningsError = round(np.std(totalWinningsPlusStakes),2)
+        avNetProfit = round(avTotalWinnings-avTotalBet,2)
+        avNetProfitError = round(((avTotalBetError**2)+(avTotalWinningsError**2))**0.5,2)
+
         print("Max Depth: "+str(maxDepth))
         print("\n\tAccuracy:", np.mean(accuracy), "+/-", np.std(accuracy))
         print("\tPrecision:", precisionMean, "+/-", precisionMeanError)
@@ -129,6 +173,14 @@ class RandomForestModel:
 
         print("\n\tAverage difference between positive and negative result certainty for a positive prediction:",str(positivePredictionProbabilityMeanDifference) + " +/- " +str(positivePredictionProbabilityErrorDifference))
         print("\tAverage difference between negative and positive result certainty for a negative prediction:",str(negativePredictionProbabilityMeanDifference) + " +/- " +str(negativePredictionProbabilityErrorDifference))
+
+        print("\n\tAverage total bet:","£" + str(avTotalBet) + " +/- " + str(avTotalBetError))
+        print("\tAverage total winnings including stake return:","£" + str(avTotalWinnings) + " +/- " + str(avTotalWinningsError))
+        print("\tAverage net profit:","£" + str(avNetProfit) + " +/- " + str(avNetProfitError))
+        print("\tAverage return:",str(round(100*avNetProfit/avTotalBet,2)) + "%")
+
+        print("\n\tAverage number of wins:",str(np.mean(totalNumberWins)) + " +/- " + str(np.std(totalNumberWins)))
+        print("\tAverage number of losses:",str(np.mean(totalNumberLosses)) + " +/- " + str(np.std(totalNumberLosses)))
         
 def AddInQuadrature(array):
     sumSquares = 0.0
