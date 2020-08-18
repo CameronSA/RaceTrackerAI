@@ -3,6 +3,8 @@ import os
 import os.path
 import pandas as pd
 from datetime import datetime
+import re
+from tqdm import tqdm
 
 class PreProcessData:
     def __init__(self):   
@@ -20,21 +22,23 @@ class PreProcessData:
         print("Fetching dataset from path '" + str(Constants.RACE_SUMMARY_DATA_FILEPATH) + "'")
         self.data = pd.read_csv(Constants.RACE_SUMMARY_DATA_FILEPATH)    
         self.__IndexRaces()
+        self.__FormatDistance()
         self.__SplitOnGoing()       
         self.__SplitOnRaceType()
-        self.__FormatDistance()
+        #self.__SplitOnRaceTrack()
+        self.data = self.data.drop(['Race Track'], axis=1)
         self.__DropUnwantedColumns()
-        print("Writing preprocessed data to '"+str(Constants.PREPROCESSED_DATA_FILEPATH)+"'")
+        print("\nWriting preprocessed data to '"+str(Constants.PREPROCESSED_DATA_FILEPATH)+"'")
         self.data.to_csv(Constants.PREPROCESSED_DATA_FILEPATH, index=None, sep=',', mode='w')
 
     def __IndexRaces(self):
-        print('Indexing races. . .')
+        print('\nIndexing races. . .')
         self.data['Race Index'] = -1
         self.data=self.data.sort_values(['Race Track','Date'])
         index=0
         prevDate = datetime.min
         prevTrack = "123"
-        for ind, row in self.data.iterrows():
+        for ind, row in tqdm(self.data.iterrows()):
             currentDateWithTime = datetime.strptime(row['Date'],'%Y-%m-%d %H:%M:%S')
             currentDate = datetime.date(currentDateWithTime)
             currentTrack = row['Race Track']
@@ -47,34 +51,68 @@ class PreProcessData:
             self.data.loc[ind,'Race Index'] = index
 
     def __SplitOnGoing(self):       
-        print('Creating going columns. . .')
-        uniqueGoings = sorted(set(self.data['Going']))
-        for going in uniqueGoings:
+        print('\nCreating going columns. . .')
+        uniqueGoings = sorted(set(self.data['Going']))      
+        print('\tInitialising cells. . .')
+        for going in tqdm(uniqueGoings):
             self.data[going] = False
-        for going in uniqueGoings:
+        print('\tPopulating cells. . .')
+        for going in tqdm(uniqueGoings):
             for ind, row in self.data.iterrows():
                 if going == row['Going']:
                     self.data.loc[ind,going] = True
         self.data = self.data.drop(['Going'], axis=1)
 
     def __SplitOnRaceType(self):
-        print('Creating going columns. . .')
-        uniqueRaceTypes = sorted(set(self.data['Race Type']))
-        for raceType in uniqueRaceTypes:
+        print('\nCreating race type columns. . .')
+        uniqueRaceTypes = sorted(set(self.data['Race Type']))   
+        print('\tInitialising cells. . .')
+        for raceType in tqdm(uniqueRaceTypes):
             self.data[raceType] = False
-        for raceType in uniqueRaceTypes:
+        print('\tPopulating cells. . .')
+        for raceType in tqdm(uniqueRaceTypes):
             for ind, row in self.data.iterrows():
                 if raceType == row['Race Type']:
                     self.data.loc[ind,raceType] = True
         self.data = self.data.drop(['Race Type'], axis=1)
 
     def __FormatDistance(self):
-        print('Formatting distance column (incomplete). . .')
+        print('\nFormatting distance column. . .')
+        for index, row in tqdm(self.data.iterrows()):
+            splitString = row['Distance'].strip().split()
+            miles = 0.0
+            furlongs = 0.0
+            yards = 0.0
+            for item in splitString:
+                if 'm' in item:
+                    miles = float(re.sub("[^0-9]", "", item))
+                if 'f' in item:                    
+                    furlongs = float(re.sub("[^0-9]", "", item))
+                if 'y' in item:                    
+                    yards = float(re.sub("[^0-9]", "", item))
+            distance = self.__ConvertDistanceToKm(miles,furlongs,yards)
+            self.data.loc[index,'Distance'] = distance
+
+    def __SplitOnRaceTrack(self):
+        print('\nSplitting on race track. . .')
+        uniqueRaceTracks = sorted(set(self.data['Race Track']))
+        print('\tInitialising cells. . .')
+        for raceTrack in tqdm(uniqueRaceTracks):
+            self.data[raceTrack] = False
+        print('\tPopulating cells. . .')
+        for raceTrack in tqdm(uniqueRaceTracks):
+            for ind, row in self.data.iterrows():
+                if raceTrack == row['Race Track']:
+                    self.data.loc[ind,raceTrack] = True
+        self.data = self.data.drop(['Race Track'], axis=1)
 
     def __DropUnwantedColumns(self):
-        print('Dropping unwanted columns. . .')
-        self.data = self.data.drop(['Date','Surface','Prize','Age'],axis=1)
+        print('\nDropping unwanted columns. . .')
+        self.data = self.data.drop(['Date','Surface','Prize','Age','Favourite Name'],axis=1)
 
     def __CheckDatasetExists(self):
         if os.path.isfile(Constants.PREPROCESSED_DATA_FILEPATH): return True
         else: return False
+
+    def __ConvertDistanceToKm(self,miles,furlongs,yards):
+        return (miles*1.609)+(furlongs*0.201)+(yards*0.000914)

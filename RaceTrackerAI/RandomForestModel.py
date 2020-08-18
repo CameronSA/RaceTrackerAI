@@ -11,6 +11,7 @@ import statistics as st
 import graphviz
 from datetime import datetime
 import PreProcessData as ppd
+from tqdm import tqdm
 
 class RandomForestModel:
     def __init__(self):
@@ -51,15 +52,47 @@ class RandomForestModel:
         precision = []
         recall = []
         positivePredictionRates = []
+        positivePredictionAverageProbabilities =[]
+        positivePredictionStdDevProbabilities =[]
+        negativePredictionAverageProbabilities =[]
+        negativePredictionStdDevProbabilities =[]
+
+        positivePredictionAverageProbabilitiesDifference =[]
+        positivePredictionStdDevProbabilitiesDifference =[]
+        negativePredictionAverageProbabilitiesDifference =[]
+        negativePredictionStdDevProbabilitiesDifference =[]
         kf = KFold(n_splits = 20, shuffle = True)
-        for train_index, test_index in kf.split(self.X):
+        for train_index, test_index in tqdm(kf.split(self.X)):
             X_train, X_test = self.X[train_index], self.X[test_index]
             y_train, y_test = self.Y[train_index], self.Y[test_index]
             #dt = DecisionTreeClassifier(max_depth=5, min_samples_leaf=100, criterion='gini')
             dt = RandomForestClassifier(max_depth = maxDepth)
             dt.fit(X_train, y_train)
             y_pred = dt.predict(X_test)
+            y_pred_proba = dt.predict_proba(X_test)
             positivePredictionRates.append(sum(y_pred)/(len(y_pred)-sum(y_pred)))
+            y_pred_proba_positive = []
+            y_pred_proba_negative = []
+            y_pred_proba_positive_difference = []
+            y_pred_proba_negative_difference = []
+            for item in y_pred_proba:                
+                if item[1] > item[0]:
+                    y_pred_proba_positive.append(item[1])
+                    y_pred_proba_positive_difference.append(item[1]-item[0])
+                elif item[0] > item[1]:
+                    y_pred_proba_negative.append(item[0])
+                    y_pred_proba_negative_difference.append(item[0]-item[1])
+            positivePredictionAverageProbabilities.append(np.mean(y_pred_proba_positive))
+            positivePredictionStdDevProbabilities.append(np.std(y_pred_proba_positive))
+            negativePredictionAverageProbabilities.append(np.mean(y_pred_proba_negative))
+            negativePredictionStdDevProbabilities.append(np.std(y_pred_proba_negative))
+
+            positivePredictionAverageProbabilitiesDifference.append(np.mean(y_pred_proba_positive_difference))
+            positivePredictionStdDevProbabilitiesDifference.append(np.std(y_pred_proba_positive_difference))
+            negativePredictionAverageProbabilitiesDifference.append(np.mean(y_pred_proba_negative_difference))
+            negativePredictionStdDevProbabilitiesDifference.append(np.std(y_pred_proba_negative_difference))
+
+            #print(y_pred[0],y_pred_proba[0])
             accuracy.append(accuracy_score(y_test, y_pred))
             precision.append(precision_score(y_test, y_pred))
             recall.append(recall_score(y_test, y_pred))
@@ -68,20 +101,37 @@ class RandomForestModel:
         avPositivePredictionRateError = round(100*st.stdev(positivePredictionRates),2)
         precisionMean = np.mean(precision)
         precisionMeanError = np.std(precision)
+
         percentageTotalPredictions = round(avPositivePredictionRate*precisionMean,2)
         percentageTotalPredictionsErrorSquared = (precisionMean*avPositivePredictionRateError)**2 + (avPositivePredictionRate*precisionMeanError)**2
         percentageTotalPredictionsError = round(percentageTotalPredictionsErrorSquared**0.5,2)
 
+        positivePredictionProbabilityMean = round(100*np.mean(positivePredictionAverageProbabilities),2)
+        positivePredictionProbabilityError = round(100*AddInQuadrature(positivePredictionStdDevProbabilities)/float(len(positivePredictionAverageProbabilities))**0.5,2)
+        negativePredictionProbabilityMean = round(100*np.mean(negativePredictionAverageProbabilities),2)
+        negativePredictionProbabilityError = round(100*AddInQuadrature(negativePredictionStdDevProbabilities)/float(len(negativePredictionAverageProbabilities))**0.5,2)
+
+        positivePredictionProbabilityMeanDifference = round(100*np.mean(positivePredictionAverageProbabilitiesDifference),2)
+        positivePredictionProbabilityErrorDifference = round(100*AddInQuadrature(positivePredictionStdDevProbabilitiesDifference)/float(len(positivePredictionAverageProbabilitiesDifference))**0.5,2)
+        negativePredictionProbabilityMeanDifference= round(100*np.mean(negativePredictionAverageProbabilitiesDifference),2)
+        negativePredictionProbabilityErrorDifference = round(100*AddInQuadrature(negativePredictionStdDevProbabilitiesDifference)/float(len(negativePredictionAverageProbabilitiesDifference))**0.5,2)
+
         print("Max Depth: "+str(maxDepth))
         print("\n\tAccuracy:", np.mean(accuracy), "+/-", np.std(accuracy))
         print("\tPrecision:", precisionMean, "+/-", precisionMeanError)
-        print("\tRecall:", np.mean(recall), "+/-", np.std(recall),"\n")
+        print("\tRecall:", np.mean(recall), "+/-", np.std(recall))
+
         print("\n\tAverage positive prediction rate:", str(avPositivePredictionRate) + " +/- " + str(avPositivePredictionRateError) + " %")
         print("\tPercentage of total predictions that are correct positive predictions (rate x precision): ", str(percentageTotalPredictions) + " +/- " + str(percentageTotalPredictionsError) + " %")
+
+        print("\n\tAverage positive prediction probability:",str(positivePredictionProbabilityMean) + " +/- " +str(positivePredictionProbabilityError))
+        print("\tAverage negative prediction probability:",str(negativePredictionProbabilityMean) + " +/- " +str(negativePredictionProbabilityError))
+
+        print("\n\tAverage difference between positive and negative result certainty for a positive prediction:",str(positivePredictionProbabilityMeanDifference) + " +/- " +str(positivePredictionProbabilityErrorDifference))
+        print("\tAverage difference between negative and positive result certainty for a negative prediction:",str(negativePredictionProbabilityMeanDifference) + " +/- " +str(negativePredictionProbabilityErrorDifference))
         
-
-
-        #feature_names = features
-        #dot_file = export_graphviz(dt, feature_names=feature_names)
-        #graph = graphviz.Source(dot_file)
-        #graph.render(filename='tree', format='png', cleanup=True)
+def AddInQuadrature(array):
+    sumSquares = 0.0
+    for number in array:
+        sumSquares += number**2
+    return sumSquares**0.5
